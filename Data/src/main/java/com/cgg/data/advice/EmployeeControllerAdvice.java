@@ -1,7 +1,10 @@
 package com.cgg.data.advice;
 
+import javax.validation.executable.ValidateOnExecution;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -22,7 +25,8 @@ public class EmployeeControllerAdvice {
 		return new ResponseEntity<String>("No records found",HttpStatus.BAD_REQUEST);
 	}
 	@ExceptionHandler(ServiceException.class)
+	@Validated
 	public ResponseEntity<String> handleServiceException	(ServiceException serviceException){
-		return new ResponseEntity<String>("No records found",HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<String>("No records found" ,HttpStatus.BAD_REQUEST);
 	}
 }
