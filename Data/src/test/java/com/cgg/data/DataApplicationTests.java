@@ -16,24 +16,26 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testng.Assert;
 
 import com.cgg.data.controller.EmployeeController;
-import com.cgg.data.exception.ServiceException;
 import com.cgg.data.model.EmployeeDto;
 import com.cgg.data.service.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @TestInstance(Lifecycle.PER_CLASS)
+//@AutoConfigureMockMvc
 class DataApplicationTests {
 
+	
 	private MockMvc mockMvc;
 
 	ObjectMapper objectMapper = new ObjectMapper();
@@ -45,12 +47,12 @@ class DataApplicationTests {
 	private EmployeeController employeeController;
 
 	@BeforeAll
-	private void setUp() {
+private void setUp() {
 		mockMvc = MockMvcBuilders.standaloneSetup(employeeController).build();
-	}
+}
 
 	@Test
-	public void addEmployeeTest() throws Exception {
+	 void addEmployeeTest() throws Exception {
 		EmployeeDto employeeDto = new EmployeeDto("ram", "eee", 1200l, 5);
 		String jsonRequest = objectMapper.writeValueAsString(employeeDto);
 		Mockito.when(employeeService.addEmployee(employeeDto)).thenReturn(employeeDto);
@@ -61,14 +63,14 @@ class DataApplicationTests {
 	}
 
 	@Test
-	public void getEmployeeByIdTest() throws Exception {
+	 void getEmployeeByIdTest() throws Exception {
 		EmployeeDto employeeDto = new EmployeeDto("ram", "eee", 1200l, 5);
 		Mockito.when(employeeService.getEmployeeById(Mockito.anyInt())).thenReturn(employeeDto);
 		mockMvc.perform(get("/employee/getEmployeeById/5")).andExpect(jsonPath("employeeName", is("ram")));
 	}
 
 	@Test
-	public void getEmployees() throws Exception {
+	 void getEmployees() throws Exception {
 		List<EmployeeDto> employeeDto=new ArrayList<EmployeeDto>();
 		EmployeeDto empDto1 = new EmployeeDto("sham", "ece", 8800l, 7);
 		EmployeeDto empDto2 = new EmployeeDto("ram", "eee", 1200l, 4);
@@ -76,16 +78,16 @@ class DataApplicationTests {
 		employeeDto.add(empDto2);
 		employeeDto.add(empDto1);
 		Mockito.when(employeeService.employeeList()).thenReturn(employeeDto);
-	//MvcResult result=	mockMvc.perform(get("/employee/getAllEmployee")).andExpect(status().isOk()).andReturn();
+	mockMvc.perform(get("/employee/getAllEmployee")).andExpect(status().isOk()).andReturn();
 	Assert.assertEquals(employeeDto.size(), 2);
 		
 	}
 	@Test
-	public void deleteEmployeeById() throws Exception {
+	 void deleteEmployeeById() throws Exception {
 		EmployeeDto empDto2 = new EmployeeDto("ram", "eee", 1200l, 4);
 		
 		Mockito.when(employeeService.deleteEmployeeById(empDto2.getId())).thenReturn("employee deleted");
-		mockMvc.perform(delete("/employee/deleteEmployeeById/3")).andExpect(status().isAccepted());
+		mockMvc.perform(delete("/employee/deleteEmployeeById/4")).andExpect(status().isAccepted());
 		
 	}
 	
