@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.cgg.data.controller.EmployeeController;
+import com.cgg.data.bo.EmployeeBO;
+import com.cgg.data.eo.EmployeeEO;
 import com.cgg.data.exception.EmployeeNotFoundException;
 import com.cgg.data.exception.NoRecordFoundException;
 import com.cgg.data.exception.ServiceException;
@@ -25,14 +26,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	EmployeeMapper employeeMapper;
+	
+	@Autowired
+	EmployeeBO employeeBO;
+	
+	@Autowired
+	EmployeeEO employeeEO;
+	
+	
 
-	Logger logger = LoggerFactory.getLogger(EmployeeController.class);
+	Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
 	@Override
-	public EmployeeDto addEmployee(EmployeeDto employee) throws ServiceException {
+	public Employee addEmployee(Employee employee) throws ServiceException {
 		try {
-			Employee saveEmployee = employeeRepository.save(employeeMapper.fromEmployeeDto(employee));
-			return employeeMapper.toEmployeeDto(saveEmployee);
+			EmployeeDto saveEmployee = employeeBO.addEmployee(employeeMapper.toEmployeeDto(employee));
+			return employeeMapper.fromEmployeeDto(saveEmployee);
 		} catch (Exception e) {
 			logger.error("couldnot add employee");
 			throw new ServiceException("couldnot add employee" + e);
@@ -40,41 +49,45 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<EmployeeDto> employeeList() throws   ServiceException {
-		
-			List<Employee> employeevo = employeeRepository.findAll();
-			try{if(!employeevo.isEmpty()) {
+	public List<Employee> employeeList() throws ServiceException {
+
+		List<EmployeeDto> employeevo = employeeBO.employeeList();
+		try {
+			if (employeevo.isEmpty()) {
+				logger.info("employee list fetched");
+				throw new NoRecordFoundException("list is empty");
 				
-				return employeeMapper.toEmployeeListDto(employeevo);
-			}
-			else throw new NoRecordFoundException("list is empty");
-			}
-			catch(NoRecordFoundException e) {
-				logger.error(e.getMessage());
-				throw new ServiceException(e.getMessage());
-			}
-			
+			} else
+				return employeeMapper.fromEmployeeListDto(employeevo);
+		} catch (NoRecordFoundException e) {
+			logger.info(e.getMessage());
+			throw new ServiceException(e.getMessage());
+		}
+
 	}
 
 	@Override
-	public String deleteEmployeeById(int id) throws  ServiceException {
-		try {if (employeeRepository.existsById(id)) {
-			employeeRepository.deleteById(id);
-		} else
+	public String deleteEmployeeById(int id) throws ServiceException {
+		try {
+			if (employeeRepository.existsById(id)) {
+				logger.info("Inside delete employee service");
+				employeeRepository.deleteById(id);
+			} else
 
-			throw new EmployeeNotFoundException("id doesnt exists");}
-		catch(EmployeeNotFoundException e) {
+				throw new EmployeeNotFoundException("id doesnt exists");
+		} catch (EmployeeNotFoundException e) {
 			throw new ServiceException(e);
 		}
 		return "employee deleted";
 	}
 
 	@Override
-	public EmployeeDto getEmployeeById(int id) throws ServiceException {
+	public Employee getEmployeeById(int id) throws ServiceException {
 		try {
-			Employee employeeById = employeeRepository.findById(id)
+			logger.info("Inside get employee by id service");
+			EmployeeDto employeeById = employeeRepository.findById(id)
 					.orElseThrow(() -> new EmployeeNotFoundException("employee doesnt exists"));
-			return employeeMapper.toEmployeeDto(employeeById);
+			return employeeMapper.fromEmployeeDto(employeeById);
 		} catch (EmployeeNotFoundException e) {
 			throw new ServiceException(e.getMessage());
 		}
@@ -82,22 +95,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public String healthCheck(int id) {
-		Optional<Employee> emp = employeeRepository.findById(id);
-		EmployeeDto employee1 =new EmployeeDto();
+		Optional<EmployeeDto> emp = employeeRepository.findById(id);
+		EmployeeDto employee1 = new EmployeeDto();
 		try {
-			
-		employee1.setEmployeeName("musk");
-		employee1.setDept("EEE");
-		employee1.setId(4);
-		employee1.setSalary(33000);
-		if(!emp.isPresent())
-		logger.info("health check successfull");
-		return "Health check successfull";
-		}catch(Exception e) {
+
+			employee1.setEmployeeName("musk");
+			employee1.setDept("EEE");
+			employee1.setId(4);
+			employee1.setSalary(33000);
+			if (!emp.isPresent())
+				logger.info("health check successfull");
+			return "Health check successfull";
+		} catch (Exception e) {
 			logger.error("Exception in health check");
 			return "Not success";
 		}
-		
+
 	}
 
 }

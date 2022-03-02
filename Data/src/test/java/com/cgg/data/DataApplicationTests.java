@@ -9,53 +9,50 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testng.Assert;
 
-import com.cgg.data.controller.EmployeeController;
-import com.cgg.data.model.EmployeeDto;
-import com.cgg.data.service.EmployeeService;
+import com.cgg.data.model.Employee;
+import com.cgg.data.service.EmployeeServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @TestInstance(Lifecycle.PER_CLASS)
-//@AutoConfigureMockMvc
+@AutoConfigureMockMvc
 class DataApplicationTests {
 
-	
+	@Autowired
 	private MockMvc mockMvc;
 
 	ObjectMapper objectMapper = new ObjectMapper();
 	
-	@Mock
-	private EmployeeService employeeService;
-
-	@InjectMocks
-	private EmployeeController employeeController;
-
-	@BeforeAll
-private void setUp() {
-		mockMvc = MockMvcBuilders.standaloneSetup(employeeController).build();
-}
+//	@Mock
+	@MockBean
+	private EmployeeServiceImpl employeeService;
+//
+//	@InjectMocks
+//	private EmployeeController employeeController;
+//
+//	@BeforeAll
+//private void setUp() {
+//		mockMvc = MockMvcBuilders.standaloneSetup(employeeController).build();
+//}
 
 	@Test
 	 void addEmployeeTest() throws Exception {
-		EmployeeDto employeeDto = new EmployeeDto("ram", "eee", 1200l, 5);
-		String jsonRequest = objectMapper.writeValueAsString(employeeDto);
-		Mockito.when(employeeService.addEmployee(employeeDto)).thenReturn(employeeDto);
+		Employee employee = new Employee("ram", 5,"eee",1000l);
+		String jsonRequest = objectMapper.writeValueAsString(employee);
+		Mockito.when(employeeService.addEmployee(employee)).thenReturn(employee);
 		mockMvc.perform(MockMvcRequestBuilders.post("/employee/addEmployee").content(jsonRequest)
 				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -64,29 +61,38 @@ private void setUp() {
 
 	@Test
 	 void getEmployeeByIdTest() throws Exception {
-		EmployeeDto employeeDto = new EmployeeDto("ram", "eee", 1200l, 5);
+		Employee employeeDto = new Employee("ram", 5,"eee",1000l);
 		Mockito.when(employeeService.getEmployeeById(Mockito.anyInt())).thenReturn(employeeDto);
 		mockMvc.perform(get("/employee/getEmployeeById/5")).andExpect(jsonPath("employeeName", is("ram")));
 	}
 
 	@Test
 	 void getEmployees() throws Exception {
-		List<EmployeeDto> employeeDto=new ArrayList<EmployeeDto>();
-		EmployeeDto empDto1 = new EmployeeDto("sham", "ece", 8800l, 7);
-		EmployeeDto empDto2 = new EmployeeDto("ram", "eee", 1200l, 4);
+		List<Employee> employeeDto=new ArrayList<Employee>();
+		Employee emp1 = new Employee("ram", 5,"eee",1000l);
+		Employee emp2 = new Employee("sham",9 ,"eee",1000l);
 		
-		employeeDto.add(empDto2);
-		employeeDto.add(empDto1);
+		employeeDto.add(emp2);
+		employeeDto.add(emp1);
 		Mockito.when(employeeService.employeeList()).thenReturn(employeeDto);
 	mockMvc.perform(get("/employee/getAllEmployee")).andExpect(status().isOk()).andReturn();
 	Assert.assertEquals(employeeDto.size(), 2);
 		
 	}
+	
 	@Test
-	 void deleteEmployeeById() throws Exception {
-		EmployeeDto empDto2 = new EmployeeDto("ram", "eee", 1200l, 4);
+	 void getNoEmployees() throws Exception {
+		List<Employee> employeeDto=new ArrayList<Employee>();
 		
-		Mockito.when(employeeService.deleteEmployeeById(empDto2.getId())).thenReturn("employee deleted");
+		Mockito.when(employeeService.employeeList()).thenReturn(employeeDto);
+	mockMvc.perform(get("/employee/getAllEmployee")).andExpect(status().isNotFound()).andReturn();
+	Assert.assertEquals(employeeDto.size(), 0);
+		
+	}
+	
+	@Test
+	 void deleteEmployeeById() throws Exception {Employee emp = new Employee("ram", 5,"eee",1000l);
+		Mockito.when(employeeService.deleteEmployeeById(emp.getId())).thenReturn("employee deleted");
 		mockMvc.perform(delete("/employee/deleteEmployeeById/4")).andExpect(status().isAccepted());
 		
 	}
